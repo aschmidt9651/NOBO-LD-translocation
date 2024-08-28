@@ -1,0 +1,22 @@
+model {
+# Texas Translocation Holding Time Model
+
+# Priors and constraints
+    
+ b0 ~ dnorm(0, 0.001) # intercept
+ b1 ~ dnorm(0, 0.001) # effect of holding time
+ 
+ # Likelihood 
+
+ for (i in 1:nind){
+   for (j in (first[i]+1):last[i]){ #known fate, detection = 1
+     logit(phi[i,j]) <- b0 + b1*holdmat[i,j-1]
+     
+     mu[i,j] <- phi[i,j]*ech[i,j-1]
+     ech[i,j] ~ dbern(mu[i,j]) #bernoulli
+        
+   
+   } 
+ } 
+
+}

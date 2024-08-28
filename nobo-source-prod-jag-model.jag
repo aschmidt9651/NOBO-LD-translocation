@@ -1,0 +1,50 @@
+model{
+  
+  # Productivity (Source Population)
+  
+  ## Priors and constraints
+  #nest propensity
+  n0 ~ dnorm(0, 0.01)   # Mean rate for number of nests initiated 
+  n1 ~ dnorm(0, 0.01)   # Effect of FLtrans on nest initiation            
+  n2 ~ dnorm(0, 0.01)   # Effect of TXtrans on nest initiation
+  n3 ~ dnorm(0, 0.01)   # Effect of sex (male) on nest initiation
+  
+  #clutch size
+  c0 ~ dnorm(0, 0.01)   # Mean rate for clutch size 
+  c1 ~ dnorm(0, 0.01)   # Effect of FLtrans on clutch size
+  c2 ~ dnorm(0, 0.01)   # Effect of TXtrans on clutch size
+  c3 ~ dnorm(0, 0.01)   # Effect of sex (male) on clutch size	
+  
+  #eggs hatched per clutch (nest survival)
+  b0 ~ dnorm(0, 0.01)   # Mean rate for number of chicks 
+  b1 ~ dnorm(0, 0.01)   # Effect of FLtrans on number of chicks
+  b2 ~ dnorm(0, 0.01)   # Effect of TXtrans on number of chicks 
+  b3 ~ dnorm(0, 0.01)   # Effect of sex (male) on nunmber of chicks
+  
+  # Likelihood for productivity data
+  for (i in 1:nind){ # males and females alive during the breeding season (start 3/19)
+    
+    # Nest propensity (number of nests initiated)
+    totalnest[i] ~ dpois(n[i])    
+    
+    # Expected number of nests initiated 
+    n[i] <- exp(n0 + n1*FLtrans[i] + n2*TXtrans[i] + n3*sex[i])
+    
+    for(n in 1:totalnest[i]){ # For each nest (could be zero)
+      
+      # Clutch size 
+      clutchsize[i,n] ~ dpois(anynest[i] * c[i,n]) # anynest serves as an indicator, so that clutchsize = 0 for any individuals that don't have a nest
+      
+      # Expected clutch size
+      c[i,n] <- exp(c0 + c1*FLtrans[i] + c2*TXtrans[i] + c3*sex[i])
+      
+      # Chicks produced per clutch
+      chicks[i,n] ~ dpois(clutchsize[i,n] * b[i,n]) # clutchaize serves as an indicator, so that chicks = 0 for any clutch with NA values
+      
+      # Expected number of chicks produced
+      b[i,n] <- exp(b0 + b1*FLtrans[i] + b2*TXtrans[i] + b3*sex[i])
+    }
+  }
+  
+
+}

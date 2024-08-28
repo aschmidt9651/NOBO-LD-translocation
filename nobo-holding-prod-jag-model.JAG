@@ -1,0 +1,45 @@
+model{
+  
+  # Productivity (Holding Time)
+  
+  ## Priors and constraints
+  n0 ~ dnorm(0, 0.01)   # Mean rate for number of nests initiated (based on mean holding time) 
+  n1 ~ dnorm(0, 0.01)   # Effect of holding time on nest initiation 
+  n2 ~ dnorm(0, 0.01)   # Effect of males on nest initiation           
+  
+  c0 ~ dnorm(0, 0.01)   # Mean rate for clutch size (based on mean holding time)
+  c1 ~ dnorm(0, 0.01)   # Effect of holding time on clutch size
+  c2 ~ dnorm(0, 0.01)   # Effect of males on clutch size 
+
+  b0 ~ dnorm(0, 0.01)   # Mean rate for number of chicks (based on mean holding time)
+  b1 ~ dnorm(0, 0.01)   # Effect of holding time on number of chicks
+  b2 ~ dnorm(0, 0.01)   # Efffect of males on number of chicks
+  
+  # Likelihood for productivity data
+  for (i in 1:nind){ # males and females alive during the breeding season (start 3/15) #including all TXtrans birds (150-2021 & 82-2022) to incorporate impact of holding
+    
+    holdingtime[i] ~ dnorm(0,1) #wrote this in b/c we assigned a random holding time for birds that died in captivity
+
+    # Nest propensity (number of nests initiated)
+    totalnest[i] ~ dpois(n[i])    
+    
+    # Expected number of nests initiated 
+    n[i] <- exp(n0 + n1*holdingtime[i] + n2*sex[i]) 
+    
+    for(n in 1:totalnest[i]){ # For each nest (could be zero)
+      
+      # Clutch size 
+      clutchsize[i,n] ~ dpois(anynest[i] * c[i,n]) # Any nest serves as an indicator, so that clutchsize = 0 for any individuals that don't have a nest
+      
+      # Expected clutch size
+      c[i,n] <- exp(c0 + c1*holdingtime[i] + c2*sex[i])
+      
+      # Chicks produced per clutch
+      chicks[i,n] ~ dpois(clutchsize[i,n] * b[i,n]) # Clutch size serves as an indicator, so that chicks = 0 for any clutch with NA values
+     
+      # Expected number of chicks produced
+      b[i,n] <- exp(b0 + b1*holdingtime[i] + b2*sex[i])
+    }
+  }
+  
+}

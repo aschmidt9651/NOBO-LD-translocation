@@ -1,0 +1,24 @@
+model {
+# Source Population Model
+
+# Priors and constraints
+    
+ b0 ~ dnorm(0, 0.001) # intercept (FL resident survival)
+ b1 ~ dnorm(0, 0.001) # effect of FL translocated bird on survival
+ b2 ~ dnorm(0, 0.001) # effect of TX translocated bird on survival
+ b3 ~ dnorm(0, 0.001) # effect sex (male) on survival
+    
+ # Likelihood 
+
+ for (i in 1:nind){
+   for (j in (first[i]+1):last[i]){ #known fate, detection = 1
+     logit(phi[i,j]) <- b0 + b1*FLtrans[i] + b2*TXtrans[i] + b3*sex[i]
+     
+     mu[i,j] <- phi[i,j]*ech[i,j-1]
+     ech[i,j] ~ dbern(mu[i,j]) #bernoulli
+        
+   
+   } 
+ } 
+
+}
